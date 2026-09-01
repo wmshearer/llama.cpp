@@ -256,6 +256,8 @@ class GGUFReader:
             if int(alen[0]) > GGUF_MAX_ARRAY_ELEMENTS:
                 raise ValueError(f'Array length {int(alen[0])} exceeds maximum {GGUF_MAX_ARRAY_ELEMENTS}')
             offs += int(alen.nbytes)
+            if int(alen[0]) > self.data.nbytes - offs:
+                raise ValueError(f'Array length {int(alen[0])} exceeds remaining file size {self.data.nbytes - offs}')
             aparts: list[npt.NDArray[Any]] = [raw_itype, alen]
             data_idxs: list[int] = []
             # FIXME: Handle multi-dimensional arrays properly instead of flattening
@@ -268,6 +270,7 @@ class GGUFReader:
                 data_idxs += (idx + idxs_offs for idx in curr_idxs)
                 offs += curr_size
             return offs - orig_offs, aparts, data_idxs, types
+
         # We can't deal with this one.
         raise ValueError(f'Unknown/unhandled field type {gtype}')
 
